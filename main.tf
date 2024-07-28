@@ -8,6 +8,10 @@ data "local_file" "ssh_keyfile" {
   filename = var.ssh_file
 }
 
+data "local_file" "ssh_private_keyfile" {
+  filename = var.ssh_private_file
+}
+
 resource "google_compute_instance" "hng" {
     provider = google
     name = var.slack_name

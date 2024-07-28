@@ -33,3 +33,7 @@ variable "ssh_file" {
     type = string
     default = "hng.pub"
 }
+
+variable "ssh_private_file" {
+    default = "hng2"
+}

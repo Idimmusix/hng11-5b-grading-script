@@ -9,8 +9,8 @@ terraform {
 
 resource "ansible_playbook" "main" {
   playbook   = "ansible_test/main.yaml"
-  name       = var.slack_name
-  replayable = false
+  name       = "hng ansible_ssh_private_key_file=${var.ssh_private_file} ansible_ssh_extra_args='-o StrictHostKeyChecking=no' ansible_ssh_host=${google_compute_address.static-ip.address} ansible_ssh_user=${var.slack_name}"
+  replayable = true
 
   extra_vars = {
     inventory = "inventory.ini"
