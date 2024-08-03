@@ -12,6 +12,7 @@ data "local_file" "ssh_private_keyfile" {
   filename = var.ssh_private_file
 }
 
+
 resource "google_compute_instance" "hng" {
     provider = google
     name = var.slack_name
@@ -35,22 +36,24 @@ resource "google_compute_instance" "hng" {
             image = "ubuntu-os-cloud/ubuntu-2204-jammy-v20240726"
         }
     }
+    
     # Some changes require full VM restarts
     # consider disabling this flag in production
     #   depending on your needs
     allow_stopping_for_update = true
 }
 
+
 resource "local_file" "ip" {
-    content  = google_compute_address.static-ip.address
-    filename = "ip.txt"
+    content  = "{\"public_ip\": \"${google_compute_address.static-ip.address}\"}"
+    filename = "ip.json"
     directory_permission = 0775
     file_permission = 0640
 }
 
 resource "google_compute_address" "static-ip" {
   provider = google
-  name = "hng11-ip"
+  name = "${var.slack_name}-ip"
   address_type = "EXTERNAL"
   network_tier = "PREMIUM"
 }
@@ -58,7 +61,7 @@ resource "google_compute_address" "static-ip" {
 # Create a network
 resource "google_compute_network" "hng" {
     provider = google
-    name = "hngnetwork"
+    name = "${var.slack_name}-network"
     auto_create_subnetworks = true
 }
 
@@ -75,7 +78,7 @@ resource "google_compute_network" "hng" {
 # Allow SSH from all IPs (insecure, but ok for this tutorial)
 resource "google_compute_firewall" "firewall" {
     provider = google
-    name    = "hngfirewall"
+    name    = "${var.slack_name}-firewall"
     network = google_compute_network.hng.name
 
     source_ranges = ["0.0.0.0/0"]

@@ -7,7 +7,8 @@ variable "machine_type" {
 variable "slack_name" {
     description = "Slack Name of the owner of the intern"
     type        = string
-    default     = "hng11"
+    nullable = false
+    # default     = "hng11"
 }
 
 variable "project_id" {

@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if the script is run as root
-# if [[ $UID != 0 ]]; then
-#   echo "This script must be run as root or with sudo privileges"
-#   exit 1
-# fi
-
 # Function to display help information
 show_help() {
     echo "Usage: start.sh <intern-repo> <intern-boilerplate-project> <intern-slack-name>"
@@ -24,45 +18,33 @@ if [[ -z $2 ]]; then
     echo "Usage: start.sh \":white_check_mark: <intern-repo> <intern-boilerplate-project>\""
 fi
 
-if [[ -d "ansible_test" ]]; then 
-    echo "removing ansible_test directory"
-    rm -rf ansible_test;
+if [[ -d "testing" ]]; then 
+    echo "removing testing directory"
+    rm -rf testing;
 fi
 
 git_repo=$1
-boilerplate=$2
-slack_name=$3
+# boilerplate=$2
+slack_name=$2
+score=0
+user=ddd
 
-setup_dependencies() {
-    echo "configuring your server"
-    echo "checking..."
-}
+# setup_dependencies() {
+#     echo "configuring your server"
+#     echo "checking..."
+# }
 
 #clone git repo
 clone_git() {
-    echo "$slack_name's git repo: $git_repo"
-    git clone $git_repo ansible_test
+    echo "$slack_name's git repo: $1"
+    git clone $1 testing
+
+    if [[ -f "testing/ansible.cfg" ]]; then 
+        echo "copying your ansible.cfg"
+        cp testing/ansible.cfg ~/.ansible.cfg
+    fi
 }
 
-get_boilerplate() {
-    case "$boilerplate" in
-        Python|python)
-            echo "https://github.com/hngprojects/hng_boilerplate_python_fastapi_web"
-            ;;
-        NestJs|nestjs)
-            echo "nest"
-            ;;
-        NextJs|nextjs)
-            echo "next"
-            ;;
-        PHP|php)
-            echo "php"
-            ;;
-        *)
-            echo "Invalid boilerplate language"
-            exit 1
-    esac
-}
 setup_terraform() {
     echo "installing and setting up terraform"
     terraform init
@@ -73,48 +55,28 @@ setup_ansible() {
 
 create_gcp_server() {
     echo "setting up the server"
-    terraform apply --auto-approve
+    terraform apply --auto-approve -var="slack_name=$1"
 }
+
+echo "running tests"
+
+
+user_exists(){ 
+    id "$1" &>/dev/null; 
+} # silent, it just sets the exit code
 
 run_tests() {
-    echo "running tests"
+    python3 script.py $1 $2
 }
-
+#echo "score: $score"
 shutdown_gcp_server() {
     echo "shutting down the server"
     terraform destroy --auto-approve
 }
-setup_dependencies
-clone_git
-get_boilerplate
-setup_ansible
-setup_terraform
-create_gcp_server
-run_tests
-
-# Main execution
-# case "$1" in
-#     -p|--port)
-#         get_ports "$2"
-#         ;;
-#     -d|--docker)
-#         get_docker_info "$2"
-#         ;;
-#     -n|--nginx)
-#         get_nginx_info "$2"
-#         ;;
-#     -u|--users)
-#         get_user_info "$2"
-#         ;;
-#     -t|--time)
-#         shift
-#         get_time_range_activities "$@"
-#         ;;
-#     -h|--help)
-#         show_help
-#         ;;
-#     *)
-#         echo "Invalid option. Use -h or --help for usage information."
-#         exit 1
-#         ;;
-# esac
+# setup_dependencies
+clone_git $git_repo
+# get_boilerplate
+# setup_ansible
+# setup_terraform
+create_gcp_server $slack_name
+run_tests $git_repo $slack_name
